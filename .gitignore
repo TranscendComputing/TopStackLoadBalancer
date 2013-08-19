@@ -1,0 +1,12 @@
+*~
+.DS_Store
+/build
+/bin
+/target
+/dist
+/*.properties
+message/
+message/*
+.mule
+*.ser
+/test/eclipse/local-eclipse.properties

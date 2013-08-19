@@ -1,0 +1,469 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xmlns:spring="http://www.springframework.org/schema/beans"
+      xmlns:http="http://www.mulesoft.org/schema/mule/http"
+      xmlns:vm="http://www.mulesoft.org/schema/mule/vm"
+      xmlns:protobuf="http://www.mulesoft.org/schema/mule/protobuf"
+      xmlns:scripting="http://www.mulesoft.org/schema/mule/scripting"
+      xsi:schemaLocation="http://www.springframework.org/schema/beans
+      http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+        http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+        http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+        http://www.mulesoft.org/schema/mule/protobuf http://www.mulesoft.org/schema/mule/protobuf/current/mule-protobuf.xsd
+        http://www.mulesoft.org/schema/mule/scripting http://www.mulesoft.org/schema/mule/scripting/current/mule-scripting.xsd
+        http://www.mulesoft.org/schema/mule/vm http://www.mulesoft.org/schema/mule/vm/current/mule-vm.xsd">
+    <description>
+    This configuration uses REST services and ZeroMQ endpoints to receive
+    requests.
+    </description>
+
+    <configuration>
+    <default-threading-profile maxThreadsActive="3"/>
+    </configuration>
+
+    <custom-transformer name="ExceptionToString" class="com.msi.tough.workflow.core.ExceptionToString"/>
+    <custom-transformer name="ExceptionToErrorResponse" class="com.msi.tough.workflow.core.ExceptionToErrorResponse"/>
+    <custom-transformer name="HttpRequestToParameter" class="org.mule.transport.servlet.transformers.HttpRequestToParameter"/>
+    <custom-transformer name="ObjectToString" class="org.mule.transformer.simple.ObjectToString"/>
+
+    <spring:bean id="muleWorkflow" factory-method="getInstance"
+    class="com.msi.tough.workflow.core.MuleWorkflow">
+    </spring:bean>
+    <spring:bean id="zmqReturnProcessor" factory-method="getInstance"
+    destroy-method="destroy"
+    class="com.msi.tough.workflow.core.RemoteWorkflowResponder">
+    </spring:bean>
+
+    <!-- Global exception strategy; return an error response to requestor -->
+    <custom-exception-strategy name="sendErrorBack" class="com.msi.tough.workflow.core.MuleExceptionStrategy">
+            <outbound-endpoint ref="SystemErrorHandlerIn"/>
+    </custom-exception-strategy>
+
+    <!-- Global exception strategy; record abnormal termination of async tasks -->
+    <!-- TODO: async error recording -->
+
+    <!-- === Zero MQ processing === -->
+    <flow name="ZMQEntry">
+        <inbound-endpoint ref="DirectToZMQEntry"/>
+        <set-session-variable variableName="returnAddress" value="#[payload[1]]"/>
+        <expression-transformer evaluator="groovy" expression="payload[0]"/>
+        <first-successful>
+            <protobuf:deserialize protobufClass="com.transcend.loadbalancer.message.ConfigureHealthCheckMessage$ConfigureHealthCheckRequest"/>
+            <protobuf:deserialize protobufClass="com.transcend.loadbalancer.message.CreateAppCookieStickinessPolicyMessage$CreateAppCookieStickinessPolicyRequest"/>
+            <protobuf:deserialize protobufClass="com.transcend.loadbalancer.message.CreateLBCookieStickinessPolicyMessage$CreateLBCookieStickinessPolicyRequest"/>
+            <protobuf:deserialize protobufClass="com.transcend.loadbalancer.message.CreateLoadBalancerListenersMessage$CreateLoadBalancerListenersRequest"/>
+            <protobuf:deserialize protobufClass="com.transcend.loadbalancer.message.CreateLoadBalancerMessage$CreateLoadBalancerRequest"/>
+            <protobuf:deserialize protobufClass="com.transcend.loadbalancer.message.DeleteLoadBalancerListenersMessage$DeleteLoadBalancerListenersRequest"/>
+            <protobuf:deserialize protobufClass="com.transcend.loadbalancer.message.DeleteLoadBalancerMessage$DeleteLoadBalancerRequest"/>
+            <protobuf:deserialize protobufClass="com.transcend.loadbalancer.message.DeregisterInstancesFromLoadBalancerMessage$DeregisterInstancesFromLoadBalancerRequest"/>
+            <protobuf:deserialize protobufClass="com.transcend.loadbalancer.message.DescribeInstanceHealthMessage$DescribeInstanceHealthRequest"/>
+            <protobuf:deserialize protobufClass="com.transcend.loadbalancer.message.DescribeLoadBalancersMessage$DescribeLoadBalancersRequest"/>
+            <protobuf:deserialize protobufClass="com.transcend.loadbalancer.message.RegisterInstancesWithLoadBalancerMessage$RegisterInstancesWithLoadBalancerRequest"/>
+        </first-successful>
+        <log-component />
+        <flow-ref name="ActionEntry"/>
+        <catch-exception-strategy>
+            <outbound-endpoint ref="SystemErrorHandlerIn"/>
+        </catch-exception-strategy>
+    </flow>
+
+    <!-- === Standard Action entry point processing === -->
+    <flow name="ActionEntry">
+        <inbound-endpoint ref="ActionIn"/>
+        <log-component />
+        <choice>
+            <when expression="payload instanceof com.transcend.loadbalancer.message.ConfigureHealthCheckMessage$ConfigureHealthCheckRequest" evaluator="groovy">
+                <flow-ref name="ConfigureHealthCheckRequest"/>
+            </when>
+            <when expression="payload instanceof com.transcend.loadbalancer.message.CreateAppCookieStickinessPolicyMessage$CreateAppCookieStickinessPolicyRequest" evaluator="groovy">
+                <flow-ref name="CreateAppCookieStickinessPolicyRequest"/>
+            </when>
+            <when expression="payload instanceof com.transcend.loadbalancer.message.CreateLBCookieStickinessPolicyMessage$CreateLBCookieStickinessPolicyRequest" evaluator="groovy">
+                <flow-ref name="CreateLBCookieStickinessPolicyRequest"/>
+            </when>
+            <when expression="payload instanceof com.transcend.loadbalancer.message.CreateLoadBalancerListenersMessage$CreateLoadBalancerListenersRequest" evaluator="groovy">
+                <flow-ref name="CreateLoadBalancerListenersRequest"/>
+            </when>
+            <when expression="payload instanceof com.transcend.loadbalancer.message.CreateLoadBalancerMessage$CreateLoadBalancerRequest" evaluator="groovy">
+                <flow-ref name="CreateLoadBalancerRequest"/>
+            </when>
+            <when expression="payload instanceof com.transcend.loadbalancer.message.DeleteLoadBalancerListenersMessage$DeleteLoadBalancerListenersRequest" evaluator="groovy">
+                <flow-ref name="DeleteLoadBalancerListenersRequest"/>
+            </when>
+            <when expression="payload instanceof com.transcend.loadbalancer.message.DeleteLoadBalancerMessage$DeleteLoadBalancerRequest" evaluator="groovy">
+                <flow-ref name="DeleteLoadBalancerRequest"/>
+            </when>
+            <when expression="payload instanceof com.transcend.loadbalancer.message.DeregisterInstancesFromLoadBalancerMessage$DeregisterInstancesFromLoadBalancerRequest" evaluator="groovy">
+                <flow-ref name="DeregisterInstancesFromLoadBalancerRequest"/>
+            </when>
+            <when expression="payload instanceof com.transcend.loadbalancer.message.DescribeInstanceHealthMessage$DescribeInstanceHealthRequest" evaluator="groovy">
+                <flow-ref name="DescribeInstanceHealthRequest"/>
+            </when>
+            <when expression="payload instanceof com.transcend.loadbalancer.message.DescribeLoadBalancersMessage$DescribeLoadBalancersRequest" evaluator="groovy">
+                <flow-ref name="DescribeLoadBalancersRequest"/>
+            </when>
+            <when expression="payload instanceof com.transcend.loadbalancer.message.RegisterInstancesWithLoadBalancerMessage$RegisterInstancesWithLoadBalancerRequest" evaluator="groovy">
+                <flow-ref name="RegisterInstancesWithLoadBalancerRequest"/>
+            </when>
+            <otherwise>
+                <flow-ref name="SystemErrorHandler"/>
+            </otherwise>
+        </choice>
+    </flow>
+
+    <!-- === Individual actions follow === -->
+
+    <!-- Request/Response flow for ConfigureHealthCheck -->
+
+    <flow name="ConfigureHealthCheckRequest">
+        <component>
+            <spring-object bean="ConfigureHealthCheckWorker"/>
+        </component>
+
+        <flow-ref name="ConfigureHealthCheckResponse"/>
+        <exception-strategy ref="sendErrorBack"/>
+    </flow>
+
+    <flow name="ConfigureHealthCheckResponse" >
+        <choice>
+            <when expression="#[org.mule.util.StringUtils.isNotEmpty(sessionVars['returnAddress'])]">
+                <processor ref="zmqReturnProcessor"/>
+            </when>
+            <otherwise>
+                <component>
+                    <spring-object bean="ConfigureHealthCheck"/>
+                </component>
+            </otherwise>
+        </choice>
+        <flow-ref name="ClientResponder"/>
+        <exception-strategy ref="sendErrorBack"/>
+    </flow>
+
+    <!-- Request/Response flow for CreateAppCookieStickinessPolicy -->
+
+    <flow name="CreateAppCookieStickinessPolicyRequest">
+        <component>
+            <spring-object bean="CreateAppCookieStickinessPolicyWorker"/>
+        </component>
+        <flow-ref name="CreateAppCookieStickinessPolicyResponse"/>
+        <exception-strategy ref="sendErrorBack"/>
+    </flow>
+
+    <flow name="CreateAppCookieStickinessPolicyResponse" >
+        <choice>
+            <when expression="#[org.mule.util.StringUtils.isNotEmpty(sessionVars['returnAddress'])]">
+                <processor ref="zmqReturnProcessor"/>
+            </when>
+            <otherwise>
+                <component>
+                    <spring-object bean="CreateAppCookieStickinessPolicy"/>
+                </component>
+            </otherwise>
+        </choice>
+        <flow-ref name="ClientResponder"/>
+        <exception-strategy ref="sendErrorBack"/>
+    </flow>
+
+    <!-- Request/Response flow for CreateLBCookieStickinessPolicy -->
+
+    <flow name="CreateLBCookieStickinessPolicyRequest">
+        <component>
+            <spring-object bean="CreateLBCookieStickinessPolicyWorker"/>
+        </component>
+        <flow-ref name="CreateLBCookieStickinessPolicyResponse"/>
+        <exception-strategy ref="sendErrorBack"/>
+    </flow>
+
+    <flow name="CreateLBCookieStickinessPolicyResponse" >
+        <choice>
+            <when expression="#[org.mule.util.StringUtils.isNotEmpty(sessionVars['returnAddress'])]">
+                <processor ref="zmqReturnProcessor"/>
+            </when>
+            <otherwise>
+                <component>
+                    <spring-object bean="CreateLBCookieStickinessPolicy"/>
+                </component>
+            </otherwise>
+        </choice>
+        <flow-ref name="ClientResponder"/>
+        <exception-strategy ref="sendErrorBack"/>
+    </flow>
+
+    <!-- Request/Response flow for CreateLoadBalancerListeners -->
+
+    <flow name="CreateLoadBalancerListenersRequest">
+        <component>
+            <spring-object bean="CreateLoadBalancerListenersWorker"/>
+        </component>
+        <flow-ref name="CreateLoadBalancerListenersResponse"/>
+        <exception-strategy ref="sendErrorBack"/>
+    </flow>
+
+    <flow name="CreateLoadBalancerListenersResponse" >
+        <choice>
+            <when expression="#[org.mule.util.StringUtils.isNotEmpty(sessionVars['returnAddress'])]">
+                <processor ref="zmqReturnProcessor"/>
+            </when>
+            <otherwise>
+                <component>
+                    <spring-object bean="CreateLoadBalancerListeners"/>
+                </component>
+            </otherwise>
+        </choice>
+        <flow-ref name="ClientResponder"/>
+        <exception-strategy ref="sendErrorBack"/>
+    </flow>
+
+    <!-- Request/Response flow for CreateLoadBalancer -->
+
+    <flow name="CreateLoadBalancerRequest">
+        <component>
+            <spring-object bean="CreateLoadBalancerWorker"/>
+        </component>
+
+        <async>
+            <flow-ref name="StandUpLoadBalancer"/>
+        </async>
+        <flow-ref name="CreateLoadBalancerResponse"/>
+        <exception-strategy ref="sendErrorBack"/>
+    </flow>
+
+    <flow name="CreateLoadBalancerResponse" >
+        <choice>
+            <when expression="#[org.mule.util.StringUtils.isNotEmpty(sessionVars['returnAddress'])]">
+                <processor ref="zmqReturnProcessor"/>
+            </when>
+            <otherwise>
+                <component>
+                    <spring-object bean="CreateLoadBalancer"/>
+                </component>
+            </otherwise>
+        </choice>
+        <flow-ref name="ClientResponder"/>
+        <exception-strategy ref="sendErrorBack"/>
+    </flow>
+
+    <flow name="StandUpLoadBalancer">
+        <component>
+            <spring-object bean="StandUpLoadBalancerWorker"/>
+        </component>
+        <catch-exception-strategy>
+            <outbound-endpoint ref="SystemErrorHandlerIn"/>
+        </catch-exception-strategy>
+    </flow>
+
+    <!-- Request/Response flow for DeleteLoadBalancerListeners -->
+
+    <flow name="DeleteLoadBalancerListenersRequest">
+        <component>
+            <spring-object bean="DeleteLoadBalancerListenersWorker"/>
+        </component>
+        <flow-ref name="DeleteLoadBalancerListenersResponse"/>
+        <exception-strategy ref="sendErrorBack"/>
+    </flow>
+
+    <flow name="DeleteLoadBalancerListenersResponse" >
+        <choice>
+            <when expression="#[org.mule.util.StringUtils.isNotEmpty(sessionVars['returnAddress'])]">
+                <flow-ref name="ZMQResponder"/>
+            </when>
+            <otherwise>
+                <component>
+                    <spring-object bean="DeleteLoadBalancerListeners"/>
+                </component>
+            </otherwise>
+        </choice>
+        <flow-ref name="ClientResponder"/>
+        <exception-strategy ref="sendErrorBack"/>
+    </flow>
+
+    <!-- Request/Response flow for DeleteLoadBalancer -->
+
+    <flow name="DeleteLoadBalancerRequest">
+        <component>
+            <spring-object bean="DeleteLoadBalancerWorker"/>
+        </component>
+        <async>
+            <flow-ref name="ShutDownLoadBalancer"/>
+        </async>
+        <flow-ref name="DeleteLoadBalancerResponse"/>
+        <exception-strategy ref="sendErrorBack"/>
+    </flow>
+
+    <flow name="DeleteLoadBalancerResponse" >
+        <choice>
+            <when expression="#[org.mule.util.StringUtils.isNotEmpty(sessionVars['returnAddress'])]">
+                <flow-ref name="ZMQResponder"/>
+            </when>
+            <otherwise>
+                <component>
+                    <spring-object bean="DeleteLoadBalancer"/>
+                </component>
+            </otherwise>
+        </choice>
+        <flow-ref name="ClientResponder"/>
+        <exception-strategy ref="sendErrorBack"/>
+    </flow>
+
+    <flow name="ShutDownLoadBalancer">
+        <component>
+            <spring-object bean="ShutDownLoadBalancerWorker"/>
+        </component>
+        <catch-exception-strategy>
+            <outbound-endpoint ref="SystemErrorHandlerIn"/>
+        </catch-exception-strategy>
+    </flow>
+
+    <!-- Request/Response flow for DeregisterInstancesFromLoadBalancer -->
+
+    <flow name="DeregisterInstancesFromLoadBalancerRequest">
+        <component>
+            <spring-object bean="DeregisterInstancesFromLoadBalancerWorker"/>
+        </component>
+        <async>
+            <flow-ref name="DeregisterInstancesFromLoadBalancerPhase2"/>
+        </async>
+        <flow-ref name="DeregisterInstancesFromLoadBalancerResponse"/>
+        <exception-strategy ref="sendErrorBack"/>
+    </flow>
+
+    <flow name="DeregisterInstancesFromLoadBalancerPhase2">
+        <component>
+            <spring-object bean="DeregisterInstancesFromLoadBalancerPhaseWorker"/>
+        </component>
+        <catch-exception-strategy>
+            <outbound-endpoint ref="SystemErrorHandlerIn"/>
+        </catch-exception-strategy>
+    </flow>
+
+    <flow name="DeregisterInstancesFromLoadBalancerResponse" >
+        <choice>
+            <when expression="#[org.mule.util.StringUtils.isNotEmpty(sessionVars['returnAddress'])]">
+                <flow-ref name="ZMQResponder"/>
+            </when>
+            <otherwise>
+                <component>
+                    <spring-object bean="DeregisterInstancesFromLoadBalancer"/>
+                </component>
+            </otherwise>
+        </choice>
+        <flow-ref name="ClientResponder"/>
+        <exception-strategy ref="sendErrorBack"/>
+    </flow>
+
+    <!-- Request/Response flow for DescribeInstanceHealth -->
+
+    <flow name="DescribeInstanceHealthRequest">
+        <component>
+            <spring-object bean="DescribeInstanceHealthWorker"/>
+        </component>
+        <flow-ref name="DescribeInstanceHealthResponse"/>
+        <exception-strategy ref="sendErrorBack"/>
+    </flow>
+
+    <flow name="DescribeInstanceHealthResponse" >
+        <choice>
+            <when expression="#[org.mule.util.StringUtils.isNotEmpty(sessionVars['returnAddress'])]">
+                <flow-ref name="ZMQResponder"/>
+            </when>
+            <otherwise>
+                <component>
+                    <spring-object bean="DescribeInstanceHealth"/>
+                </component>
+            </otherwise>
+        </choice>
+        <flow-ref name="ClientResponder"/>
+        <exception-strategy ref="sendErrorBack"/>
+    </flow>
+
+    <!-- Request/Response flow for DescribeLoadBalancers -->
+
+    <flow name="DescribeLoadBalancersRequest">
+        <component>
+            <spring-object bean="DescribeLoadBalancersWorker"/>
+        </component>
+        <flow-ref name="DescribeLoadBalancersResponse"/>
+        <exception-strategy ref="sendErrorBack"/>
+    </flow>
+
+    <flow name="DescribeLoadBalancersResponse" >
+        <choice>
+            <when expression="#[org.mule.util.StringUtils.isNotEmpty(sessionVars['returnAddress'])]">
+                <flow-ref name="ZMQResponder"/>
+            </when>
+            <otherwise>
+                <component>
+                    <spring-object bean="DescribeLoadBalancers"/>
+                </component>
+            </otherwise>
+        </choice>
+        <flow-ref name="ClientResponder"/>
+        <exception-strategy ref="sendErrorBack"/>
+    </flow>
+
+    <!-- Request/Response flow for RegisterInstancesWithLoadBalancer -->
+
+    <flow name="RegisterInstancesWithLoadBalancerRequest">
+        <component>
+            <spring-object bean="RegisterInstancesWithLoadBalancerWorker"/>
+        </component>
+        <async>
+            <flow-ref name="RegisterInstancesWithLoadBalancerPt2"/>
+        </async>
+        <flow-ref name="RegisterInstancesWithLoadBalancerResponse"/>
+        <exception-strategy ref="sendErrorBack"/>
+    </flow>
+
+    <flow name="RegisterInstancesWithLoadBalancerPt2">
+        <component>
+            <spring-object bean="RegisterInstancesWithLoadBalancerPhaseWorker"/>
+        </component>
+        <catch-exception-strategy>
+            <outbound-endpoint ref="SystemErrorHandlerIn"/>
+        </catch-exception-strategy>
+    </flow>
+
+    <flow name="RegisterInstancesWithLoadBalancerResponse" >
+        <choice>
+            <when expression="#[org.mule.util.StringUtils.isNotEmpty(sessionVars['returnAddress'])]">
+                <flow-ref name="ZMQResponder"/>
+            </when>
+            <otherwise>
+                <component>
+                    <spring-object bean="RegisterInstancesWithLoadBalancer"/>
+                </component>
+            </otherwise>
+        </choice>
+        <flow-ref name="ClientResponder"/>
+        <exception-strategy ref="sendErrorBack"/>
+    </flow>
+
+    <!-- General system flows -->
+
+    <flow name="ZMQResponder">
+        <log-component />
+        <processor ref="zmqReturnProcessor"/>
+    </flow>
+
+    <flow name="ClientResponder">
+        <component>
+            <spring-object bean="loadBalancerServiceAsync"/>
+        </component>
+    </flow>
+
+    <!-- Handle any unexpected errors. Errors could also be routed elsewhere,
+        e.g. into an error file, send via email to a list, stored in a database, etc. -->
+    <flow name="SystemErrorHandler">
+        <inbound-endpoint ref="SystemErrorHandlerIn"/>
+        <choice>
+            <when expression="#[org.mule.util.StringUtils.isNotEmpty(sessionVars['returnAddress'])]">
+                <flow-ref name="ZMQResponder"/>
+            </when>
+            <otherwise>
+                <flow-ref name="ClientResponder"/>
+            </otherwise>
+        </choice>
+    </flow>
+
+</mule>

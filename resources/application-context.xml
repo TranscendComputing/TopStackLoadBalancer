@@ -1,0 +1,246 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:oxm="http://www.springframework.org/schema/oxm"
+	xmlns:jdbc="http://www.springframework.org/schema/jdbc" xmlns:lang="http://www.springframework.org/schema/lang"
+	xmlns:p="http://www.springframework.org/schema/p" xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:util="http://www.springframework.org/schema/util"
+    xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+		http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc-3.0.xsd
+		http://www.springframework.org/schema/lang http://www.springframework.org/schema/lang/spring-lang-3.0.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-3.0.xsd
+		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.0.xsd
+        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd">
+	<!-- ============================== 	-->
+    <import resource="commonservices-context.xml" />
+
+    <bean id="servicesPropertyConfigurer"
+        class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+        <property name="systemPropertiesModeName" value="SYSTEM_PROPERTIES_MODE_OVERRIDE" />
+        <property name="ignoreUnresolvablePlaceholders" value="true" />
+        <property name="ignoreResourceNotFound" value="true"/>
+        <property name="locations">
+                <list>
+                        <value>classpath*:/*.properties</value>
+                        <value>file:${catalina.base}/conf/transcend.properties</value>
+                        <value>classpath*:/loadbalancer.ports</value>
+                </list>
+        </property>
+    </bean>
+
+    <!-- inject loadbalancer util classes (helpers, etc.) -->
+    <context:component-scan base-package="com.msi.tough.query.elasticloadbalancing" />
+    <!-- inject core action classes (ActionTestHelper, etc.) -->
+    <context:component-scan base-package="com.msi.tough.query" />
+    <!-- inject project action classes (Describe, etc.) -->
+    <context:component-scan base-package="com.transcend.loadbalancer" />
+
+    <!-- service definitions for load balancer -->
+    <bean id="ConfigureHealthCheck"
+        class="com.msi.tough.query.elasticloadbalancing.ConfigureHealthCheck"/>
+
+    <bean id="ConfigureHealthCheckWorker"
+        class="com.transcend.loadbalancer.worker.ConfigureHealthCheckWorker"/>
+
+    <bean id="CreateAppCookieStickinessPolicy"
+        class="com.msi.tough.query.elasticloadbalancing.CreateAppCookieStickinessPolicy"/>
+
+    <bean id="CreateAppCookieStickinessPolicyWorker"
+        class="com.transcend.loadbalancer.worker.CreateAppCookieStickinessPolicyWorker"/>
+
+    <bean id="CreateLBCookieStickinessPolicy"
+        class="com.msi.tough.query.elasticloadbalancing.CreateLBCookieStickinessPolicy"/>
+
+    <bean id="CreateLBCookieStickinessPolicyWorker"
+        class="com.transcend.loadbalancer.worker.CreateLBCookieStickinessPolicyWorker"/>
+
+    <bean id="CreateLoadBalancer"
+        class="com.msi.tough.query.elasticloadbalancing.CreateLoadBalancer"/>
+
+    <bean id="CreateLoadBalancerWorker"
+        class="com.transcend.loadbalancer.worker.CreateLoadBalancerWorker"/>
+
+    <bean id="StandUpLoadBalancerWorker"
+        class="com.transcend.loadbalancer.worker.StandUpLoadBalancerWorker"/>
+
+    <bean id="CreateLoadBalancerListeners"
+        class="com.msi.tough.query.elasticloadbalancing.CreateLoadBalancerListeners"/>
+
+    <bean id="CreateLoadBalancerListenersWorker"
+        class="com.transcend.loadbalancer.worker.CreateLoadBalancerListenersWorker"/>
+
+    <bean id="DeleteLoadBalancer"
+        class="com.msi.tough.query.elasticloadbalancing.DeleteLoadBalancer"/>
+
+    <bean id="DeleteLoadBalancerWorker"
+        class="com.transcend.loadbalancer.worker.DeleteLoadBalancerWorker"/>
+
+    <bean id="ShutDownLoadBalancerWorker"
+        class="com.transcend.loadbalancer.worker.ShutDownLoadBalancerWorker"/>
+
+    <bean id="DeleteLoadBalancerListeners"
+        class="com.msi.tough.query.elasticloadbalancing.DeleteLoadBalancerListeners"/>
+
+    <bean id="DeleteLoadBalancerListenersWorker"
+        class="com.transcend.loadbalancer.worker.DeleteLoadBalancerListenersWorker"/>
+
+    <bean id="DeregisterInstancesFromLoadBalancer"
+        class="com.msi.tough.query.elasticloadbalancing.DeregisterInstancesFromLoadBalancer"/>
+
+    <bean id="DeregisterInstancesFromLoadBalancerWorker"
+        class="com.transcend.loadbalancer.worker.DeregisterInstancesFromLoadBalancerWorker"/>
+
+    <bean id="DeregisterInstancesFromLoadBalancerPhaseWorker"
+        class="com.transcend.loadbalancer.worker.DeregisterInstancesFromLoadBalancerPhaseWorker"/>
+
+    <bean id="DescribeInstanceHealth"
+        class="com.msi.tough.query.elasticloadbalancing.DescribeInstanceHealth"/>
+
+    <bean id="DescribeInstanceHealthWorker"
+        class="com.transcend.loadbalancer.worker.DescribeInstanceHealthWorker"/>
+
+    <bean id="DescribeLoadBalancers"
+        class="com.msi.tough.query.elasticloadbalancing.DescribeLoadBalancers"/>
+
+    <bean id="DescribeLoadBalancersWorker"
+        class="com.transcend.loadbalancer.worker.DescribeLoadBalancersWorker"/>
+
+    <bean id="RegisterInstancesWithLoadBalancer"
+        class="com.msi.tough.query.elasticloadbalancing.RegisterInstancesWithLoadBalancer"/>
+
+    <bean id="RegisterInstancesWithLoadBalancerWorker"
+        class="com.transcend.loadbalancer.worker.RegisterInstancesWithLoadBalancerWorker"/>
+
+    <bean id="RegisterInstancesWithLoadBalancerPhaseWorker"
+        class="com.transcend.loadbalancer.worker.RegisterInstancesWithLoadBalancerPhaseWorker"/>
+
+    <bean id="UnsupportedAction"
+        class="com.msi.tough.query.UnsupportedAction"/>
+
+    <util:map id="actions">
+        <entry key="ApplySecurityGroupsToLoadBalancer" value-ref="UnsupportedAction"/>
+        <entry key="AttachLoadBalancerToSubnets" value-ref="UnsupportedAction"/>
+        <entry key="ConfigureHealthCheck" value-ref="ConfigureHealthCheck"/>
+        <entry key="CreateAppCookieStickinessPolicy" value-ref="CreateAppCookieStickinessPolicy"/>
+        <entry key="CreateLBCookieStickinessPolicy" value-ref="CreateLBCookieStickinessPolicy"/>
+        <entry key="CreateLoadBalancer" value-ref="CreateLoadBalancer"/>
+        <entry key="CreateLoadBalancerListeners" value-ref="CreateLoadBalancerListeners"/>
+        <entry key="CreateLoadBalancerPolicy" value-ref="UnsupportedAction"/>
+        <entry key="DeleteLoadBalancer" value-ref="DeleteLoadBalancer"/>
+        <entry key="DeleteLoadBalancerListeners" value-ref="DeleteLoadBalancerListeners"/>
+        <entry key="DeregisterInstancesFromLoadBalancer" value-ref="DeregisterInstancesFromLoadBalancer"/>
+        <entry key="DescribeInstanceHealth" value-ref="DescribeInstanceHealth"/>
+        <entry key="DescribeLoadBalancerPolicies" value-ref="UnsupportedAction"/>
+        <entry key="DescribeLoadBalancerPolicyTypes" value-ref="UnsupportedAction"/>
+        <entry key="DescribeLoadBalancers" value-ref="DescribeLoadBalancers"/>
+        <entry key="DetachLoadBalancerFromSubnets" value-ref="UnsupportedAction"/>
+        <entry key="DisableAvailabilityZonesForLoadBalancer" value-ref="UnsupportedAction"/>
+
+        <entry key="RegisterInstancesWithLoadBalancer" value-ref="RegisterInstancesWithLoadBalancer"/>
+        <entry key="SetLoadBalancerListenerSSLCertificate" value-ref="UnsupportedAction"/>
+        <entry key="SetLoadBalancerPoliciesForBackendServer" value-ref="UnsupportedAction"/>
+
+    </util:map>
+
+    <bean id="loadBalancerServiceAsync"
+        class="com.msi.tough.query.AsyncServiceImpl">
+            <constructor-arg ref="actions"/>
+    </bean>
+
+    <util:map id="elasticLoadBalancingQuery_ec2_options">
+        <entry key="INSTANCE_ID_TYPE" value="EC2"></entry>
+        <entry key="AUTHN" value="EC2"></entry>
+    </util:map>
+
+    <util:map id="elasticLoadBalancingQuery_uuid_options">
+        <entry key="INSTANCE_ID_TYPE" value="UUID"></entry>
+        <entry key="AUTHN" value="EC2"></entry>
+    </util:map>
+
+    <bean id="ServiceLoadBalancerImpl"
+        class="com.msi.tough.query.serviceloadbalancer.ServiceLoadBalancerImpl">
+        <constructor-arg>
+            <map>
+                <entry key="CreateService">
+                    <bean class="com.msi.tough.query.serviceloadbalancer.CreateServiceAction">
+                    </bean>
+                </entry>
+                <entry key="ListService">
+                    <bean class="com.msi.tough.query.serviceloadbalancer.ListServiceAction">
+                    </bean>
+                </entry>
+                <entry key="DeleteService">
+                    <bean class="com.msi.tough.query.serviceloadbalancer.DeleteServiceAction">
+                    </bean>
+                </entry>
+            </map>
+        </constructor-arg>
+    </bean>
+
+    <bean id="elasticLoadBalancingQuery"
+        class="com.msi.tough.query.elasticloadbalancing.ElasticLoadBalancingImpl">
+        <constructor-arg>
+            <map>
+                <entry key="SetLoadBalancerPoliciesOfListener">
+                    <bean
+                        class="com.msi.tough.query.elasticloadbalancing.SetLoadBalancerPoliciesOfListener">
+                    </bean>
+                </entry>
+            </map>
+        </constructor-arg>
+    </bean>
+
+    <bean id="endpoint" class="java.lang.String">
+        <constructor-arg value="ActionIn"/>
+    </bean>
+    <bean id="rawEndpoint" class="java.lang.String">
+        <constructor-arg value="DirectToZMQEntry"/>
+    </bean>
+
+    <bean id="workflow" factory-method="getInstance"
+    class="com.msi.tough.workflow.core.MuleWorkflow">
+    </bean>
+
+    <bean id="recvEndpoint" class="java.lang.String">
+        <constructor-arg value="tcp://*:${loadbalancer.port}"/>
+    </bean>
+
+    <bean id="workflowReceiver" init-method="init" destroy-method="destroy"
+    class="com.msi.tough.workflow.core.WorkflowReceiver">
+    </bean>
+
+    <bean id="actionHelper" class="com.msi.tough.query.ActionHelper">
+    </bean>
+
+    <!-- Run common annotations; e.g. PostConstruct/PreDestroy. -->
+    <context:annotation-config />
+
+        <bean id="appctx" factory-method="getInstanceForInjection"
+        class="com.msi.tough.core.Appctx">
+        <property name="configuration" ref="configuration"/>
+    </bean>
+
+    <bean class="com.msi.tough.core.AppctxInjector"/>
+
+    <bean id="hibernateUtil" class="com.msi.tough.core.HibernateUtil">
+        <property name="sessionFactory" ref="sessionFactory" />
+    </bean>
+
+    <tx:annotation-driven transaction-manager="txManager"/>
+
+    <!-- Redefine session factory; this app uses annotations for transactions -->
+    <bean id="sessionFactory"
+        class="org.springframework.orm.hibernate3.LocalSessionFactoryBean">
+        <property name="dataSource" ref="msiDS" />
+        <property name="configLocation" value="classpath:hibernate.cfg.xml"></property>
+        <property name="configurationClass" value="org.hibernate.cfg.AnnotationConfiguration"></property>
+        <property name="hibernateProperties">
+            <value>hibernate.dialect=org.hibernate.dialect.MySQL5InnoDBDialect
+                hibernate.cache.provider_class=org.hibernate.cache.NoCacheProvider
+                hibernate.show_sql=false
+                hibernate.hbm2ddl.auto=update
+            </value>
+        </property>
+    </bean>
+
+</beans>

@@ -1,0 +1,29 @@
+import "LoadBalancer.proto";
+package topstack_LoadBalancer;
+
+option java_package = "com.transcend.loadbalancer.message";
+option java_outer_classname = "CreateLoadBalancerMessage";
+
+message CreateLoadBalancerRequest {
+    required bool typeId = 300;
+    required string requestId = 1;
+    required string callerAccessKey = 2;
+    optional string action = 3 [default = ""];
+    required string loadBalancerName = 4;
+    repeated Listener listener = 5;
+    repeated string availabilityZone = 6;
+    repeated string subnet = 7;
+    repeated string securityGroups = 8;
+    optional string scheme = 9;
+}
+
+message CreateLoadBalancerResult {
+    required bool typeId = 301;
+    required string requestId = 1;
+    required string callerAccessKey = 2;
+    required string dNSName = 3;
+    required string loadBalancerName = 4;
+    repeated Listener listeners = 5;
+    repeated string availabilityZone = 6;
+    optional string stackId = 7;
+}

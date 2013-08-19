@@ -1,0 +1,20 @@
+import "LoadBalancer.proto";
+package topstack_LoadBalancer;
+
+option java_package = "com.transcend.loadbalancer.message";
+option java_outer_classname = "CreateLoadBalancerListenersMessage";
+
+message CreateLoadBalancerListenersRequest {
+    required bool typeId = 314;
+    required string requestId = 1;
+    required string callerAccessKey = 2;
+    optional string action = 3 [default = "CreateLBList"];
+    required string loadBalancerName = 4;
+    repeated Listener listener = 5;
+}
+
+message CreateLoadBalancerListenersResult {
+    required bool typeId = 315;
+    required string requestId = 1;
+    required string callerAccessKey = 2;
+}

@@ -1,0 +1,21 @@
+package topstack_LoadBalancer;
+
+option java_package = "com.transcend.loadbalancer.message";
+option java_outer_classname = "DeregisterInstancesFromLoadBalancerMessage";
+
+message DeregisterInstancesFromLoadBalancerRequest {
+    required bool typeId = 308;
+    required string requestId = 1;
+    required string callerAccessKey = 2;
+    optional string action = 3 [default = "DeregInstFromLB"];
+    repeated string instance = 4;
+    required string loadBalancerName = 5;
+}
+
+message DeregisterInstancesFromLoadBalancerResponse {
+    required bool typeId = 309;
+    required string requestId = 1;
+    required string callerAccessKey = 2;
+    repeated string instance = 3;
+    required string loadBalancerName = 4;
+}

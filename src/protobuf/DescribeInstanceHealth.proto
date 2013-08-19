@@ -1,0 +1,21 @@
+import "LoadBalancer.proto";
+package topstack_LoadBalancer;
+
+option java_package = "com.transcend.loadbalancer.message";
+option java_outer_classname = "DescribeInstanceHealthMessage";
+
+message DescribeInstanceHealthRequest {
+    required bool typeId = 312;
+    required string requestId = 1;
+    required string callerAccessKey = 2;
+    optional string action = 3 [default = "DescInstHlth"];
+    repeated Instance instance = 4;
+    required string loadBalancerName = 5;
+}
+
+message DescribeInstanceHealthResponse {
+    required bool typeId = 313;
+    required string requestId = 1;
+    required string callerAccessKey = 2;
+    repeated InstanceState instanceState  = 3;
+}

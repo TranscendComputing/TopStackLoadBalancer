@@ -1,0 +1,4 @@
+loadbalancer.port =5480
+remote.loadbalancer.port=5580
+response.loadbalancer.port=5481
+response.compute.port=5482

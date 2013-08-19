@@ -1,0 +1,21 @@
+package topstack_LoadBalancer;
+
+option java_package = "com.transcend.loadbalancer.message";
+option java_outer_classname = "RegisterInstancesWithLoadBalancerMessage";
+
+message RegisterInstancesWithLoadBalancerRequest {
+    required bool typeId = 304;
+    required string requestId = 1;
+    required string callerAccessKey = 2;
+    optional string action = 3 [default = "RegInstWithLB"];
+    repeated string instance = 4;
+    required string loadBalancerName = 5;
+}
+
+message RegisterInstancesWithLoadBalancerResponse {
+    required bool typeId = 305;
+    required string requestId = 1;
+    required string callerAccessKey = 2;
+    repeated string instance = 3;
+    required string loadBalancerName = 4;
+}

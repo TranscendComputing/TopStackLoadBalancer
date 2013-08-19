@@ -1,0 +1,19 @@
+package topstack_LoadBalancer;
+
+option java_package = "com.transcend.loadbalancer.message";
+option java_outer_classname = "DeleteLoadBalancerMessage";
+
+message DeleteLoadBalancerRequest {
+    required bool typeId = 302;
+    required string requestId = 1;
+    required string callerAccessKey = 2;
+    optional string action = 3 [default = ""];
+    required string loadBalancerName = 4;
+}
+
+message DeleteLoadBalancerResponse {
+    required bool typeId = 303;
+    required string requestId = 1;
+    required string callerAccessKey = 2;
+    required string loadBalancerName = 3;
+}

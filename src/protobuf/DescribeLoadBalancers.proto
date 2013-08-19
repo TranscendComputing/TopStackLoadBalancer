@@ -1,0 +1,55 @@
+import "LoadBalancer.proto";
+package topstack_LoadBalancer;
+
+option java_package = "com.transcend.loadbalancer.message";
+option java_outer_classname = "DescribeLoadBalancersMessage";
+
+message LoadBalancerDescription {
+    required string loadBalancerName = 1;
+    optional string dnsName = 2;
+    optional string createdTime = 3;
+    optional HealthCheck healthCheck = 4;
+    repeated Instance instances = 5;
+    repeated ListenerDescription listenerDescription = 6;
+    repeated string availabilityZones = 7;
+    repeated string policyNames = 8;
+    optional Policies policies = 9;
+}
+
+message Policies {
+    repeated AppCookieStickinessPolicy appCookieStickinessPolicies = 1;
+    repeated LBCookieStickinessPolicy lBCookieStickinessPolicies = 2;
+    repeated string otherPolicies = 3;
+    // This is just a placeholder to work around protobuf bug #266
+    optional bool unused = 4;
+}
+
+message ListenerDescription {
+    repeated string policyNames = 6;
+    required topstack_LoadBalancer.Listener listener = 7;
+}
+
+message AppCookieStickinessPolicy {
+    optional string policyName = 1;
+    optional string cookieName = 2;
+}
+
+message LBCookieStickinessPolicy {
+    optional string policyName = 1;
+    optional uint64 cookieExpirationPeriod = 2;
+}
+
+message DescribeLoadBalancersRequest {
+    required bool typeId = 306;
+    required string requestId = 1;
+    required string callerAccessKey = 2;
+    optional string action = 3 [default = "DescLB"];
+    repeated string loadBalancerNames = 4;
+}
+
+message DescribeLoadBalancersResult {
+    required bool typeId = 307;
+    required string requestId = 1;
+    required string callerAccessKey = 2;
+    repeated LoadBalancerDescription loadBalancerDescriptions = 3;
+}

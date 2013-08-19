@@ -1,0 +1,22 @@
+import "LoadBalancer.proto";
+package topstack_LoadBalancer;
+
+option java_package = "com.transcend.loadbalancer.message";
+option java_outer_classname = "CreateLBCookieStickinessPolicyMessage";
+
+
+message CreateLBCookieStickinessPolicyRequest {
+    required bool typeId = 318;
+    required string requestId = 1;
+    required string callerAccessKey = 2;
+    optional string action = 3 [default = ""];
+    required string policyName = 4;
+    required uint32 cookieExpirationPeriod = 5;
+    required string loadBalancerName = 6;
+}
+
+message CreateLBCookieStickinessPolicyResponse {
+    required bool typeId = 319;
+    required string requestId = 1;
+    required string callerAccessKey = 2;
+}

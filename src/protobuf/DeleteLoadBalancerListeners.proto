@@ -1,0 +1,20 @@
+import "LoadBalancer.proto";
+package topstack_LoadBalancer;
+
+option java_package = "com.transcend.loadbalancer.message";
+option java_outer_classname = "DeleteLoadBalancerListenersMessage";
+
+message DeleteLoadBalancerListenersRequest {
+    required bool typeId = 316;
+    required string requestId = 1;
+    required string callerAccessKey = 2;
+    optional string action = 3 [default = "DeleteLBList"];
+    required string loadBalancerName = 4;
+    repeated uint32 loadBalancerPort = 5;
+}
+
+message DeleteLoadBalancerListenersResult {
+    required bool typeId = 317;
+    required string requestId = 1;
+    required string callerAccessKey = 2;
+}
