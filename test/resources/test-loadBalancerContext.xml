@@ -344,7 +344,6 @@
         <entry key="SERVLET_URL" value="http://${deploy.ip}:8080/RDSQuery"></entry>
         <entry key="TRANSCEND_URL" value="http://${deploy.ip}:8080/ASInternal"></entry>
         <entry key="AvailabilityZone" value="${default.availability.zone}"/>
-        <entry key="EC2_URL" value="${ec2.endpoint}"/>
     </util:map>
 
     <bean id="configuration" factory-method="merge" class="com.msi.tough.core.MapUtil">
