@@ -140,7 +140,7 @@ public class CreateLoadBalancerWorker extends
            ltype.setProtocol(protocol);
            String instanceProtocol = lsn.hasProtocol()?
                    lsn.getInstanceProtocol() : null;
-           if (instanceProtocol == null) {
+           if (instanceProtocol == null || instanceProtocol.isEmpty()) {
                instanceProtocol = protocol;
            }
            instanceProtocol = instanceProtocol.toLowerCase();

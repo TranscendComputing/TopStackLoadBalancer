@@ -78,7 +78,7 @@ public abstract class AbstractLoadBalancerHelper extends AbstractHelper<String> 
         listener.setProtocol("http");
         listener.setLoadBalancerPort(80);
         listener.setInstancePort(80);
-        listener.setInstanceProtocol("http");
+        // optional: listener.setInstanceProtocol("");
         request.addListener(listener);
         request.setAction("CreateLB");
         return request;
