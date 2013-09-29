@@ -30,5 +30,6 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/TopStackCore"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/TopStackResources"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/TopStackCompute"/>
+	<classpathentry kind="lib" path="/TopStackResources/lib/mule-devkit-annotations-3.3.2.jar"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>
