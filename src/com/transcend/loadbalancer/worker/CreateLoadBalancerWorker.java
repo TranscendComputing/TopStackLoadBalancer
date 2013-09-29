@@ -138,12 +138,11 @@ public class CreateLoadBalancerWorker extends
                throw LoadBalancerQueryFaults.invalidConfigurationRequest();
            }
            ltype.setProtocol(protocol);
-           String instanceProtocol = lsn.hasProtocol()?
-                   lsn.getInstanceProtocol() : null;
-           if (instanceProtocol == null || instanceProtocol.isEmpty()) {
+           String instanceProtocol = lsn.hasInstanceProtocol()?
+                   lsn.getInstanceProtocol().toLowerCase() : "";
+           if (instanceProtocol.isEmpty()) {
                instanceProtocol = protocol;
            }
-           instanceProtocol = instanceProtocol.toLowerCase();
            if (!instanceProtocol.equals("http")) {
                throw LoadBalancerQueryFaults.invalidConfigurationRequest();
            }

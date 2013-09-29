@@ -71,6 +71,14 @@ public class CreateLoadBalancerRequestUnmarshaller implements
                     + ".InstancePort")[0]));
             lsn.setLoadBalancerPort(Integer.parseInt(in.get("Listeners.member."
                     + i + ".LoadBalancerPort")[0]));
+            String[] instanceProtocol = in.get("Listeners.member."
+                    + i + ".InstanceProtocol");
+            if (instanceProtocol == null || instanceProtocol.length == 0 ||
+                instanceProtocol[0].isEmpty()) {
+                lsn.setInstanceProtocol(lsn.getProtocol());
+            } else {
+                lsn.setInstanceProtocol(instanceProtocol[0]);
+            }
             req.addListener(lsn);
         }
         return req.buildPartial();

@@ -75,15 +75,17 @@ public class StandUpLoadBalancerWorker extends
             ltype.setLoadBalancerPort(Integer.toString(lsn.getLoadBalancerPort()));
             final String protocol = lsn.getProtocol().toLowerCase();
             if (!protocol.equals("http")) {
+                logger.warn("Invalid protocol:" + protocol);
                 throw LoadBalancerQueryFaults.invalidConfigurationRequest();
             }
             ltype.setProtocol(protocol);
-            String instanceProtocol = lsn.getInstanceProtocol();
-            if (instanceProtocol == null) {
+            String instanceProtocol = lsn.hasInstanceProtocol()?
+                    lsn.getInstanceProtocol().toLowerCase() : "";
+            if (instanceProtocol.isEmpty()) {
                 instanceProtocol = protocol;
             }
-            instanceProtocol = instanceProtocol.toLowerCase();
             if (!instanceProtocol.equals("http")) {
+                logger.warn("Invalid protocol:" + protocol);
                 throw LoadBalancerQueryFaults.invalidConfigurationRequest();
             }
             ltype.setSSLCertificateId(lsn.getSSLCertificateId());
